@@ -5,12 +5,8 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # Backend variables (can be overridden by env: BACKEND_HOST, BACKEND_PORT)
-    set $backend_host ${BACKEND_HOST:-localhost};
-    set $backend_port ${BACKEND_PORT:-8080};
-
     location /api/ {
-        proxy_pass http://$backend_host:$backend_port/;
+        proxy_pass __BACKEND_URL__;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
