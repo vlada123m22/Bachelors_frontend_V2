@@ -2,27 +2,29 @@ server {
     listen 80;
     server_name localhost;
 
+    # DNS resolver (required for variables in proxy_pass)
+    resolver 8.8.8.8 valid=300s;
+    resolver_timeout 5s;
+
     root /usr/share/nginx/html;
     index index.html;
 
+    # API proxy – strips /api prefix
     location /api/ {
-        # Remove the problematic rewrite line:
-        # rewrite ^/api/(.*)$ /$1 break;
-
-        # Forward the request directly to the backend URL.
-        proxy_pass ${BACKEND_URL};
+        rewrite ^/api/(.*)$ /$1 break;
+        set $backend ${BACKEND_URL};
+        proxy_pass $backend;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_cache_bypass $http_upgrade;
-        proxy_ssl_verify off;
-        proxy_ssl_server_name on;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 
+    # Static files – SPA fallback
     location / {
         try_files $uri $uri/ /index.html;
     }
