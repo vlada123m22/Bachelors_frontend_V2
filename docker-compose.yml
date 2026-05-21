@@ -1,0 +1,87 @@
+
+services:
+  frontend:
+    build: .
+     
+    #image: vladamusin/frontend:0.0.11
+    ports:
+      - "3000:80"
+    #depends_on:
+     # - backend
+    networks:
+      - platform_network
+    environment:
+      BACKEND_URL: https://platform-backend-97rh.onrender.com
+      BACKEND_HOST: platform-backend-97rh.onrender.com #$host for local testing
+
+  postgres:
+    image: postgres:15
+    container_name: platform_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: platformdb
+      POSTGRES_USER: platformuser
+      POSTGRES_PASSWORD: platformpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - platform_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platformuser -d platformdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Backend
+  backend:
+    image: vladamusin/backend:0.0.5
+    container_name: platform_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/platformdb
+      SPRING_DATASOURCE_USERNAME: platformuser
+      SPRING_DATASOURCE_PASSWORD: platformpass
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: 8081
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      JWT_SECRET: 0MhF1xqqaE0VHLUkaEBgUgZtnQWeaNBIAhAgkwvQbFM=
+    # Only expose to internal network, NOT to host
+    expose:
+      - "8081"
+    ports:
+      - "8081:8081"
+    networks:
+      - platform_network
+      
+     
+
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: platform_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    # Only expose to internal network
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - platform_network
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  platform_network:
+    driver: bridge
