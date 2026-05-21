@@ -1,11 +1,12 @@
-# Dockerfile
 FROM nginx:alpine
 
-# Copy the HTML file to nginx
-COPY index.html /usr/share/nginx/html/
+# Copy your custom Nginx configuration (the one that proxies /api to the backend)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy nginx configuration TEMPLATE (not regular conf)
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+# Copy the frontend HTML file
+COPY index.html /usr/share/nginx/html/index.html
 
+# Expose port 80 (default HTTP port)
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+
+# Nginx will start automatically (base image CMD)
