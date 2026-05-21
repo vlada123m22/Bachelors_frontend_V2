@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: frontend_V2
+  IMAGE_NAME: frontend_v2
   REGISTRY: docker.io
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
       - name: Determine next version
         id: version
         run: |
-          RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/frontend_V2/tags/?page_size=100)
+          RESPONSE=$(curl -s https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/frontend_v2/tags/?page_size=100)
 
           # Check if results exist
           EXISTING_TAGS=$(echo "$RESPONSE" | jq -r '.results // empty | .[].name')
