@@ -1,12 +1,17 @@
 FROM nginx:alpine
 
-# Copy your custom Nginx configuration (the one that proxies /api to the backend)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Install envsubst for variable substitution
+RUN apk add --no-cache gettext
 
-# Copy the frontend HTML file
+# Copy nginx config template
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Copy frontend files
 COPY index.html /usr/share/nginx/html/index.html
 
-# Expose port 80 (default HTTP port)
+# Expose port 80 (Nginx listens on port 80 inside container)
+# The external port will be mapped via -p HOST_PORT:80
 EXPOSE 80
 
-# Nginx will start automatically (base image CMD)
+# Nginx will automatically substitute variables from environment
+CMD ["nginx", "-g", "daemon off;"]
